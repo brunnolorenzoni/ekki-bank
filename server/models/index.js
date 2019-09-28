@@ -2,9 +2,16 @@ const Sequelize = require('sequelize');
 const env = require('../config/env');
 
 
-const sequelize = new Sequelize(env.database, env.username, env.password);
+const sequelize = new Sequelize(env.database, env.username, env.password, {
+  dialect: env.dialect
+});
 
-const models = {}
+const models = {
+  User: sequelize.import('./User'),
+  Account: sequelize.import('./Account'),
+  Contact: sequelize.import('./Contact'),
+  Transaction: sequelize.import('./Transaction')
+};
 
 Object.keys(models).forEach((modelName) => {
     if ('associate' in models[modelName]) {
@@ -15,4 +22,4 @@ Object.keys(models).forEach((modelName) => {
 models.sequelize = sequelize;
 models.Sequelize = Sequelize;
 
-export default models;
+module.exports = models;

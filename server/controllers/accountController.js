@@ -1,4 +1,4 @@
-const Account = require('../models/accountModel');
+const models = require('../models');
 
 
 exports.getUserAccounts = (req, res) => {

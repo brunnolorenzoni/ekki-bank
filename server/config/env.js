@@ -1,6 +1,6 @@
 const env = {
     database: 'ekki',
-    username: 'root',
+    username: 'postgres',
     password: 'root',
     host: '127.0.0.1',
     port: 5432,
