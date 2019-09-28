@@ -1,5 +1,4 @@
-const db = require('../config/db.config.js');
-const User = require('../models/userModel');
+const models = require('../models');
 
 exports.getUser = (req, res) => {
 

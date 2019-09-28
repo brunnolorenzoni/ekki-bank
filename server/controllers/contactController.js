@@ -1,3 +1,5 @@
+const models = require('../models');
+
 exports.getUserContacts = async (req, res) => {
     res.status(200).json({"message": "Return User Contatos"});
 };
