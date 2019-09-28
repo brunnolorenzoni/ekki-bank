@@ -1,4 +1,5 @@
 const express = require('express');
+var cors = require('cors')
 const app = express();
 
 //Improt Routes
@@ -10,6 +11,7 @@ const operationRoute = require('./routes/operationRoute');
 
 //Middleware
 app.use(express.json())
+app.use(cors())
 
 //Route Middleware
 app.use('/api/', userRoute)
