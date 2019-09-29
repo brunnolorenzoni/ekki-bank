@@ -1,10 +1,6 @@
 const { Transaction, User, sequelize } = require('../models');
 const { Op } = require('sequelize');
-
-
-exports.transferToContact = async (req, res) => {
-
-}
+const { cpf } = require('cpf-cnpj-validator');
 
 const registerTransition = async(newTransition) => {
     return await Transaction.create(newTransition);
@@ -79,9 +75,10 @@ const testAccountHasBalance = (account, amount) => {
     return true;
 }
 
-exports.transferToFavored = async (req, res) => {
 
-    const { to_user, fom_user, amount, user_release_limit } = req.body;
+exports.transaction = async (req, res) => {
+
+    const { to_user, fom_user, amount, user_release_limit, is_contact } = req.body;
 
     //Primeiro olhamos se tem valor
     if(amount && parseFloat(amount) <= 0){
@@ -121,18 +118,34 @@ exports.transferToFavored = async (req, res) => {
         }
     }
 
-    //Procuramos para quem vamos mandar
-    const UserTo = await User.findOne({ 
-        where: { cpf: to_user },
-        include: ['account']
-    })
-    .then(user => {
-        if(user){ return user; }
-        res.status(400).json({"message": "Usuario de origem não encontrado"});
-    })
-    .catch(err => { res.status(400).json({"message": "Usuario de destino não encontrado"})});;
+    let UserTo;
 
+    if(is_contact){
+        //Procuramos para quem vai receber por cpf
+        UserTo = await User.findOne({ 
+            where: { id: to_user },
+            include: ['account']
+        })
+        .then(user => {
+            if(user){ return user; }
+            res.status(400).json({"message": "Usuario de origem não encontrado"});
+        })
+        .catch(err => { res.status(400).json({"message": "Usuario de destino não encontrado"})});
+    } else {
 
+        //Procuramos para quem vai receber id
+        UserTo = await User.findOne({ 
+            where: { cpf: to_user },
+            include: ['account']
+        })
+        .then(user => {
+            if(user){ return user; }
+            res.status(400).json({"message": "Usuario de origem não encontrado"});
+        })
+        .catch(err => { res.status(400).json({"message": "Usuario de destino não encontrado"})});
+
+    }
+    
     //Aqui procuramos alguma transferencia, com os mesmos dados da atual,
     //ordenada pela data de criacao....
     const lastTransaction = await Transaction.findOne({ 
