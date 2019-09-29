@@ -25,6 +25,8 @@ app.use('*', function(req,res){
     res.status(404).send("URL cannot found");        
 })
 
-models.sequelize.sync({}).then(() => {
+//models.sequelize.sync({force: true}).then(() => {
+models.sequelize.sync().then(() => {
     app.listen(3001);
+    console.log('running on port 3001');
 });
