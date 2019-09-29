@@ -6,11 +6,19 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             defaultValue: 0,
         },
-        date: {
+        createdAt: {
             type: DataTypes.DATE,
             allowNull: false,
-            defaultValue: new Date()
+            defaultValue: sequelize.literal("NOW()"),
+            field: 'created_at'
+        },
+        updatedAt: {
+            type: DataTypes.DATE,
+            allowNull: true,
+            field: 'updated_at'
         }
+    }, {
+        timestamp: true
     });
   
     Transaction.associate = (models) => {

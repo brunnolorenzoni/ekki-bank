@@ -1,22 +1,40 @@
-const models = require('../models');
+const { User } = require('../models');
 
-exports.getUser = (req, res) => {
-
-    const idUser = req.params.id;
-
-    User.findByPk(idUser)
-    .then(user => {
-        if(user){
-            res.status(200).send(user)
-        } else {
-            res.status(200).json({"message": "Conta não encontrada"});
+getUser = async (props) => {
+    const { key, value } = props;
+    if(!key || !value ){
+        return { status_code: 400, json: {"message": "no params specified"} }
+    }
+    return await User.findOne({
+        where: {
+            [key]: value
+        },
+        attributes: {
+            exclude: ['phone', 'createdAt', 'updatedAt']
         }
     })
-    .catch(err => res.status(400).json({"message": "Erro ao encontrar usuario", "err": err})
-    );
-
+    .then(user => {
+        if(user){
+            return { status_code: 200, json: user }
+        }
+        return { status_code: 400, json: "Usuário não encontrado." }        
+    }).catch(err => {
+        return {status_code: 400, json: {"message": "no params specified"}}
+    });
 };
 
-exports.findUserByCPF = (req, res) => {
-    res.status(200).json({"message": "Return User By CPF"});
+exports.findUser = async (req, res) => {
+
+    const idUser = req.params.id;
+    const cpf = req.body.cpf;
+
+    const props = {
+        key: (idUser ? 'id' : 'cpf'),
+        value: (idUser ? idUser : cpf)
+    };
+
+    const user = await getUser(props);
+
+    res.status(user.status_code).json(user.json);
+
 };
