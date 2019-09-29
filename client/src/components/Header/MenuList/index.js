@@ -15,7 +15,7 @@ const MenuList = (props) => {
     {
       label: "Transferência",
       icon: <SwapHorizIcon/>,
-      href: "/transfer"
+      href: "/transaction"
     },
 
     {

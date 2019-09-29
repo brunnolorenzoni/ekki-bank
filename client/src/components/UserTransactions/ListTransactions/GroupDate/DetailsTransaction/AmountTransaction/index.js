@@ -3,9 +3,11 @@ import React, { useEffect } from 'react';
 
 const AmountTransaction = (props) => {
 
+    const { amount } = props;
+
     return (
         <div className="amount-transfer">
-            <p className="amount">+ R$ 1000.00</p>
+            <p className="amount">{ amount }</p>
         </div>
     )
 

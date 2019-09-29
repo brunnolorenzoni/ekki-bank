@@ -40,4 +40,17 @@ export const getTransactions = async (idUser) => {
     return request;
 }
 
+export const getContacts = async (idUser) => {
+
+    var request = await axios.get('http://localhost:3001/api/user/' + idUser + '/contacts/')
+    .then(function (response) {
+        return response.data;
+    })
+    .catch(function (error) {
+        return error.response;
+    })
+
+    return request;
+}
+
 
