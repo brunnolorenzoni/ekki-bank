@@ -35,7 +35,9 @@ const Home = (props) => {
             setContacts(contacts);
         }
         
-        fetchData();
+        if(!storeUser.id){
+            fetchData();
+        }
         
     }, []);
 
