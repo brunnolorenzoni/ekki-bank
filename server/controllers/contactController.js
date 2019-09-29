@@ -1,4 +1,4 @@
-const { Contact } = require('../models');
+const { Contact, User } = require('../models');
 
 exports.getUserContacts = async (req, res) => {
 
@@ -17,7 +17,7 @@ exports.getUserContacts = async (req, res) => {
         }, 
         include: [
             { 
-                model: models.User, 
+                model: User, 
                 as: "user_contact",
                 attributes: { exclude: ["createdAt", "updatedAt", "phone"] }
             }
@@ -52,7 +52,7 @@ exports.getOneContact = (req, res) => {
         }, 
         include: [
             { 
-                model: models.User, 
+                model: User, 
                 as: "user_contact",
                 where: {
                     id: idContact
@@ -81,7 +81,7 @@ const existThisUserInContactsList = async (idUser, cpf) => {
         }, 
         include: [
             { 
-                model: models.User, 
+                model: User, 
                 as: "user_contact",
                 where: { cpf },
                 attributes: { exclude: ["createdAt", "updatedAt", "phone"] }
@@ -93,7 +93,7 @@ const existThisUserInContactsList = async (idUser, cpf) => {
 
 const existThisUserInDatabase = async (cpf) => {
 
-    return await models.User.findOne({ 
+    return await User.findOne({ 
         where: { cpf }
     });
 
@@ -101,7 +101,7 @@ const existThisUserInDatabase = async (cpf) => {
 
 const isNotYou = async (idUser, cpf) => {
 
-    return await models.User.findOne({ 
+    return await User.findOne({ 
         where: { id: idUser }
     }).then(user => {
         if(user.cpf === cpf){
