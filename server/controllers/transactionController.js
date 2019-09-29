@@ -1,4 +1,4 @@
-const models = require('../models');
+const { Transaction, User, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
 
@@ -6,110 +6,136 @@ exports.transferToContact = async (req, res) => {
 
 }
 
-const startTransaction = async(fromUser, toUser, amount, release_limit) => {
+const registerTransition = async(newTransition) => {
+    return await Transaction.create(newTransition);
+}
 
-    return await models.sequelize.transaction( async t => {
-        
-        const t1 = await fromUser.account.update({
-            balance_value: (parseFloat(fromUser.account.balance_value) - parseFloat(amount))
-        }, {transaction: t});
+const prepareTransactionFrom = async(account, amount, user_release_limit) => {
 
-        const t2 = await toUser.account.update({
-            balance_value: (parseFloat(toUser.account.balance_value) + parseFloat(amount))
-        }, {transaction: t});
+    let newBalance = parseFloat(account.balance) - parseFloat(amount);
+    return { balance: newBalance };
 
-        if(release_limit){
+}
+const prepareTransactionTo = async(account, amount) => {
 
-            const limitUsed = Math.abs(fromUser.account.balance_value);
-
-            const t3 = await fromUser.account.update({
-                balance_value: 0
-            }, {transaction: t});
-
-            const t4 = await fromUser.account.update({
-                limit_value: fromUser.account.limit_value - limitUsed
-            }, {transaction: t});
-            
-        }
-
-        const t5 = await models.Transaction.create({
-            amount: amount,
-            status: 1,
-            from_user_id: fromUser.id,
-            to_user_id: toUser.id
-        }, {transaction: t});
-
-    })
-    .then(result => {
-        return true;
-    }).catch(err => {
-        return false
-    });
+    let newBalance = parseFloat(account.balance) + parseFloat(amount);
+    return { balance: newBalance };
 
 }
 
-const cancelLastTransaction = async(lastTransaction) => {
+const startTransaction = async(fromAccount, toAccount, amount, user_release_limit) => {
 
-    
-    return await models.sequelize.transaction( async t => {
-        const t1 = await lastTransaction.update({
-            status: 0
-        }, {transaction: t});
+    const newFromAccountData = await prepareTransactionFrom(fromAccount, amount, user_release_limit);
+    const newToAccountData = await prepareTransactionTo(toAccount, amount);
 
-        const t2 = await models.Transaction.create({
-            amount: lastTransaction.amount,
-            status: 1,
-            from_user_id: lastTransaction.from_user_id,
-            to_user_id: lastTransaction.to_user_id
-        }, {transaction: t});
+    return await sequelize.transaction( async t => {
+        const t1 = await fromAccount.update(newFromAccountData, {transaction: t});
+        const t2 = await toAccount.update(newToAccountData, {transaction: t});
+        const t3 = await registerTransition({amount: amount, status: 1, from_user_id: fromAccount.id, to_user_id: toAccount.id}).then(() => {}, {transaction: t})
     })
-    .then(result => {
-        return true;
-    }).catch(err => {
-        return false
-    });
+    .then(result => true)
+    .catch(err => false);
 
+}
+
+const lastTransactionRule = async(lastTransaction) => {
+
+    return await sequelize.transaction( async t => {
+        const t1 = await lastTransaction.update({ status: 0 }, {transaction: t});
+        const t2 = await registerTransition({
+            amount: lastTransaction.amount, 
+            status: 1, from_user_id: 
+            lastTransaction.from_user_id, 
+            to_user_id: lastTransaction.to_user_id
+        }).then(() => {}, {transaction: t})
+    })
+    .then(result => true)
+    .catch(err => false);
+
+}
+
+const hasBeen2Minutes = (dateLastTransaction) => {
+    const twoMinutes = 120000;
+    return ((new Date().getTime() - dateLastTransaction.getTime()) > twoMinutes);
+}
+
+const testAccountHasBalanceLimit = (account, amount) => {
+
+    const balanceWithLimit = parseFloat(account.limit) + parseFloat(account.balance);
+    const hasLimit = balanceWithLimit - parseFloat(amount);
+
+    if(hasLimit < 0){
+        return false;
+    }
+    
+    return true;
+
+}
+
+const testAccountHasBalance = (account, amount) => {
+    if(parseFloat(amount) > parseFloat(account.balance)){
+        return false
+    }
+    return true;
 }
 
 exports.transferToFavored = async (req, res) => {
 
-    //to_user: CPF
-    //from_user: ID
-    const { to_user, fom_user, amount, release_limit } = req.body;
+    const { to_user, fom_user, amount, user_release_limit } = req.body;
 
-    if(parseFloat(amount) <= 0){
-        return res.status(400).json({"message": "Valor invalido"});
+    //Primeiro olhamos se tem valor
+    if(amount && parseFloat(amount) <= 0){
+        return res.status(400).json({"message": "Valor inválido. Ele deve ser maior que zero."});
     }
     
-    const UserTo = await models.User.findOne({ 
-        where: { cpf: to_user },
-        include: ['account']
-    });
-    if(!UserTo){
-        return res.status(400).json({"message": "user TO not exist"});
-    }
-
-    const UserFrom = await models.User.findOne({ 
+    //Procuramos quem está enviando
+    const UserFrom = await User.findOne({ 
         where: { id: fom_user },
         include: ['account']
-    });
-    if(!UserFrom){
-        return res.status(400).json({"message": "user FROM not exist"});
-    }
+    }).then(user => {
+        if(user){ return user }
+        res.status(400).json({"message": "Usuario de origem não encontrado"});
+    }).catch(err => { res.status(400).json({"message": "Erro ao procurar usario de origem"}); });
 
-    if(parseFloat(amount) > parseFloat(UserFrom.account.balance_value)){
-        const balanceWithLimit = parseFloat(UserFrom.account.limit_value) + parseFloat(UserFrom.account.balance_value);
-        const hasLimit = balanceWithLimit - parseFloat(amount);
-        if(hasLimit < 0){
-            return res.status(400).json({"message": "Você não tem saldo e nem limite suficiente para realizar a operação"});
+
+    //testamos caso o usuario nao tenha saldo suficiente
+    if(await !testAccountHasBalance(UserFrom.account, amount)){
+        //testamos se o usuario o tem limite
+        if(await !testAccountHasBalanceLimit(UserFrom.account, amount)){
+            //caso não tenha limite ele não pode transferir
+            return res.status(400).json({"message": "Você não tem saldo e nem limite suficiente para realizar a operação."});
         } else {
-            if(!release_limit){
-                return res.status(400).json({"message": "Você deseja usar o limite?"});
+            //caso tenha limite... mandada a pergunta
+            //user_release_limit vem na requisicao quando o usuario aceita usar o limite
+            if(!user_release_limit){
+                return res.status(400).json({
+                    "message": "Você deseja usar o seu limite?", 
+                    "type": "dialog", 
+                    "options": [
+                        {"label": "Sim", "value": true}, 
+                        {"label": "Não", "value": false}
+                    ],
+                    "key_response": "user_release_limit"
+                });
             }
         }
     }
 
-    const lastTransaction = await models.Transaction.findOne({ 
+    //Procuramos para quem vamos mandar
+    const UserTo = await User.findOne({ 
+        where: { cpf: to_user },
+        include: ['account']
+    })
+    .then(user => {
+        if(user){ return user; }
+        res.status(400).json({"message": "Usuario de origem não encontrado"});
+    })
+    .catch(err => { res.status(400).json({"message": "Usuario de destino não encontrado"})});;
+
+
+    //Aqui procuramos alguma transferencia, com os mesmos dados da atual,
+    //ordenada pela data de criacao....
+    const lastTransaction = await Transaction.findOne({ 
         where: {
             to_user_id: UserTo.id,
             from_user_id: UserFrom.id,
@@ -119,39 +145,40 @@ exports.transferToFavored = async (req, res) => {
         order: [['createdAt', 'DESC']] 
     });
 
-
+    // ... se existir, entaramos aqui ....
     if(lastTransaction){
-        const hasBeen2Minutes = ((new Date().getTime() - lastTransaction.createdAt.getTime()) > 120000);
-        if(!hasBeen2Minutes){
-            console.log("CANCELA A ULTIMA")
-            if(await cancelLastTransaction(lastTransaction)){
-                return res.status(200).json({"message": "Trnasferencia realziada com sucesso"});
+        // e testamos a regra dos 2 minutos...
+        if(await !hasBeen2Minutes(lastTransaction.createdAt)){
+            //se entrar aqui, então vamos ter que inicar a operacao da regra
+            //cancelar a ultima e deixar só a atual
+            if(await lastTransactionRule(lastTransaction)){
+                return res.status(200).json({"message": "Transferência realziada com sucesso"});
             } else {
-                return res.status(400).json({"message": "Erro na trnasferencia"});
+                return res.status(400).json({"message": "Erro na transferência"});
             }
         }
     }
     
-
-    
-    if(await startTransaction(UserFrom, UserTo, amount, release_limit)){
-        return res.status(200).json({"message": "Trnasferencia realziada com sucesso"});
+    //caso nao tenha entrado na regra dos dois minutos
+    //iniciamos uma transaction para transferir o dinheiro
+    if(await startTransaction(UserFrom.account, UserTo.account, amount, user_release_limit)){
+        return res.status(200).json({"message": "Transferência realziada com sucesso"});
     } else {
         return res.status(400).json({"message": "Erro na trnasferencia"});
     }
-    
 };
 
 exports.getAllTransactions = (req, res) => {
 
     const idUser = req.params.idUser;
+    const orderBy = req.params.orderBy;
 
-    models.Transaction.findAll({
+    Transaction.findAll({
         where: {
-          [Op.or]: [
-            { from_user_id: idUser },
-            { to_user_id: idUser }]
-          ,
+            [Op.or]: [
+                { from_user_id: idUser },
+                { to_user_id: idUser }
+            ]
         },
         order: [['createdAt', 'DESC']],
         include: ['from', 'to',],
@@ -173,7 +200,7 @@ exports.getOneTransaction = (req, res) => {
         return res.status(400).json({"message": "no params specified"});
     }
 
-    models.Transaction.findByPk(idTransaction, {
+    Transaction.findByPk(idTransaction, {
         include: ['from', 'to',],
     })
     .then(transaction => {

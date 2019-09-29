@@ -1,4 +1,4 @@
-const models = require('../models');
+const { Contact } = require('../models');
 
 exports.getUserContacts = async (req, res) => {
 
@@ -8,7 +8,7 @@ exports.getUserContacts = async (req, res) => {
         return res.status(400).json({"message": "no params specified"});
     }
 
-    models.Contact.findAll({
+    Contact.findAll({
         where: {
             user_id: idUser
         },
@@ -27,9 +27,9 @@ exports.getUserContacts = async (req, res) => {
         if(contacts.length){
             res.status(200).send(contacts)
         } else {
-            res.status(200).json({"message": "Nenhum contato encontrado"});
+            res.status(200).json({"message": "Nenhum contato cadastrado."});
         }
-    }).catch(err => res.status(400).json({"message": "Erro ao encontrar contatos", "err": err}));
+    }).catch(err => res.status(400).json({"message": "Erro ao encontrar contatos.", "err": err}));
 
 };
 
@@ -42,7 +42,7 @@ exports.getOneContact = (req, res) => {
         return res.status(400).json({"message": "no params specified"});
     }
 
-    models.Contact.findOne({
+    Contact.findOne({
         where: {
             user_id: idUser,
             contact_id: idContact
@@ -65,14 +65,14 @@ exports.getOneContact = (req, res) => {
         if(contact){
             res.status(200).send(contact)
         } else {
-            res.status(200).json({"message": "contato não encontrado"});
+            res.status(200).json({"message": "Contato não encontrado."});
         }
-    }).catch(err => res.status(400).json({"message": "Erro ao encontrar contatos", "err": err}));
+    }).catch(err => res.status(400).json({"message": "Erro ao encontrar contato.", "err": err}));
 };
 
 const existThisUserInContactsList = async (idUser, cpf) => {  
 
-    return await models.Contact.findOne({ 
+    return await Contact.findOne({ 
         where: { 
             user_id: idUser 
         },
@@ -124,22 +124,22 @@ exports.addContact = async (req, res) => {
 
     const existUserToAdd = await existThisUserInDatabase(req.body.cpf)
     if(!existUserToAdd){
-        res.status(400).json({"message": "user not exist"});
+        res.status(400).json({"message": "Este usuário não existe."});
     }
 
     if(await existThisUserInContactsList(idUser, req.body.cpf)){
-        res.status(400).json({"message": "user already exist in you contact list"});
+        res.status(400).json({"message": "Contato já existe na sua lista de contatos."});
     }
 
     if(await isNotYou(idUser, req.body.cpf)){
-        res.status(400).json({"message": "Você não pode se adicionar"});
+        res.status(400).json({"message": "Você não pode se adicionar."});
     }
     
-    models.Contact.create({
+    Contact.create({
         contact_id: existUserToAdd.id,
         user_id: idUser
     }).then(contact => {
-        res.status(200).json({"message": "contato cadastrado com sucesso"});
+        res.status(200).json({"message": "Contato cadastrado com sucesso."});
     }).catch(err => res.status(400).json({"message": "Erro ao cadastrar contato", "err": err}));
     
 };
@@ -153,7 +153,7 @@ exports.deleteContact = (req, res) => {
         return res.status(400).json({"message": "no params specified"});
     }
 
-    models.Contact.findOne({
+    Contact.findOne({
         where: {
             id: idContact,
             user_id: idUser
@@ -161,12 +161,12 @@ exports.deleteContact = (req, res) => {
     }).then(contact => {
         if(contact){
             contact.destroy({ force: true }).then(() => {
-                res.status(200).json({"message": "contato deletado com sucesso"});   
+                res.status(200).json({"message": "Contato deletado com sucesso."});   
             });
         } else {
-            res.status(400).json({"message": "contato não encontrado"});   
+            res.status(400).json({"message": "Contato não encontrado para ser deletado."});   
         }
-    }).catch(err => res.status(400).json({"message": "Erro ao deletar contato", "err": err}));
+    }).catch(err => res.status(400).json({"message": "Erro ao deletar contato.", "err": err}));
 
 
 };

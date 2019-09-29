@@ -1,49 +1,40 @@
-const models = require('../models');
+const { User } = require('../models');
 
-exports.getUser = (req, res) => {
-
-    const idUser = req.params.id;
-
-    if(!idUser){
-        return res.status(400).json({"message": "no params specified"});
+getUser = async (props) => {
+    const { key, value } = props;
+    if(!key || !value ){
+        return { status_code: 400, json: {"message": "no params specified"} }
     }
-
-    models.User.findByPk(idUser, {
+    return await User.findOne({
+        where: {
+            [key]: value
+        },
         attributes: {
             exclude: ['phone', 'createdAt', 'updatedAt']
         }
     })
     .then(user => {
         if(user){
-            res.status(200).send(user)
-        } else {
-            res.status(400).json({"message": "Conta não encontrada"});
+            return { status_code: 200, json: user }
         }
-    }).catch(err => res.status(400).json({"message": "Erro ao encontrar usuario", "err": err}));
-
+        return { status_code: 400, json: "Usuário não encontrado." }        
+    }).catch(err => {
+        return {status_code: 400, json: {"message": "no params specified"}}
+    });
 };
 
-exports.findUserByCPF = (req, res) => {
+exports.findUser = async (req, res) => {
+
+    const idUser = req.params.id;
     const cpf = req.body.cpf;
 
-    if(!cpf){
-        return res.status(400).json({"message": "no body cpf specified"});
-    }
+    const props = {
+        key: (idUser ? 'id' : 'cpf'),
+        value: (idUser ? idUser : cpf)
+    };
 
-    models.User.findOne({
-        where: { 
-            cpf: cpf
-        },
-        attributes: {
-            exclude: ['phone', 'createdAt', 'updatedAt']
-        }
-    }).then(user => {
-        if(user){
-            res.status(200).send(user)
-        } else {
-            res.status(400).json({"message": "Não encontrado"});
-        }
-    }).catch(err => res.status(400).json({"message": "Erro ao encontrar usuario", "err": err}));
+    const user = await getUser(props);
 
-    
+    res.status(user.status_code).json(user.json);
+
 };

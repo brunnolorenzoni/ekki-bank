@@ -4,12 +4,12 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             unique: 'user_id'
         },
-        balance_value: {
+        balance: {
             type: DataTypes.DECIMAL(16,2),
             allowNull: false,
             defaultValue: 1000.00,
         },
-        limit_value: {
+        limit: {
             type: DataTypes.DECIMAL(16,2),
             allowNull: false,
             defaultValue: 500.00,

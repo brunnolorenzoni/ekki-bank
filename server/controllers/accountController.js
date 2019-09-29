@@ -1,11 +1,10 @@
-const models = require('../models');
-
+const { Account } = require('../models');
 
 exports.getUserAccount = (req, res) => {
 
     const idUser = req.params.idUser;
 
-    models.Account.findOne({ 
+    Account.findOne({ 
         where: { 
             user_id: idUser 
         },
@@ -13,14 +12,13 @@ exports.getUserAccount = (req, res) => {
             exclude: ['createdAt', 'updatedAt']
         }
     })
-    .then(accounts => {
-        if(accounts){
-            res.status(200).send(accounts)
-        }
-        else {
-            res.status(400).json({"message": "Contas do usaurio " + idUser + " não encontrada"});
+    .then(account => {
+        if(account){
+            res.status(200).send(account)
+        } else {
+            res.status(400).json({"message": "Conta do usaurio não encontrada."});
         }
         
-    }).catch(err => res.status(400).json({"message": "Erro ao encontrar contas", "err": err}));
+    }).catch(err => res.status(400).json({"message": "Erro ao encontrar conta.", "err": err}));
     
 };
