@@ -168,6 +168,30 @@ exports.transferToFavored = async (req, res) => {
     }
 };
 
+const groupByDate = (transactions) => {
+
+    let datesObject = {};
+
+    for ( let i in transactions){
+        let date = new Date(transactions[i].createdAt);
+        let dateKey = date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate(); 
+
+        if(!datesObject[dateKey]){
+            datesObject[dateKey] = {}
+        }
+        datesObject[dateKey].date = date;
+
+        if(!datesObject[dateKey].registers) {
+            datesObject[dateKey].registers = [];
+        }
+
+        datesObject[dateKey].registers.push(transactions[i])
+
+    }
+
+    return datesObject;
+}
+
 exports.getAllTransactions = (req, res) => {
 
     const idUser = req.params.idUser;
@@ -184,7 +208,7 @@ exports.getAllTransactions = (req, res) => {
         include: ['from', 'to',],
     }).then(transactions => {
         if(transactions.length){
-            res.status(200).send(transactions)
+            res.status(200).send(groupByDate(transactions))
         } else {
             res.status(400).json({"message": "Nenhuma transferencia encontrada"});
         }
