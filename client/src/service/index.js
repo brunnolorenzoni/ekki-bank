@@ -15,9 +15,9 @@ export const getUser = async (idUser) => {
 
 export const getAccount = async (idUser) => {
 
-    var request = await axios.get('http://localhost:3001/api/user/' + idUser + '/accounts')
+    var request = await axios.get('http://localhost:3001/api/user/' + idUser + '/account')
     .then(function (response) {
-        return response.data[0];
+        return response.data;
     })
     .catch(function (error) {
         return error.response;
@@ -25,3 +25,19 @@ export const getAccount = async (idUser) => {
 
     return request;
 }
+
+
+export const getTransactions = async (idUser) => {
+
+    var request = await axios.get('http://localhost:3001/api/user/' + idUser + '/transactions/')
+    .then(function (response) {
+        return response.data;
+    })
+    .catch(function (error) {
+        return error.response;
+    })
+
+    return request;
+}
+
+
