@@ -1,10 +1,7 @@
 import React, { useEffect } from 'react';
 
 import Header from '../../components/Header';
-import UserInfo from '../../components/Home/UserInfo';
-import NavOperations from '../../components/Home/NavOperations';
 import UserTransactions from '../../components/UserTransactions';
-
 
 import { getUser, getAccount, getTransactions, getContacts } from '../../service';
 
@@ -15,7 +12,7 @@ import { setContacts } from '../../store/actions/contacts';
 
 import { connect } from 'react-redux';
 
-const Home = (props) => {
+const Historic = (props) => {
 
     const { storeUser, setUser, storeAccount, setAccount, storeTransactions, setTransactions, sotreContacts, setContacts } = props;
 
@@ -45,8 +42,6 @@ const Home = (props) => {
         <>
             <Header/>
             <main className="main-wrapper">
-                <UserInfo user={storeUser} account={storeAccount}/>
-                <NavOperations />
                 <UserTransactions transactions={storeTransactions}/>
             </main>
         </>
@@ -71,4 +66,4 @@ const mapDispatchToProps = (dispatch) => {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Home);
+export default connect(mapStateToProps, mapDispatchToProps)(Historic);

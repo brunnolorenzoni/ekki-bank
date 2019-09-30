@@ -6,10 +6,23 @@ import { Cancel } from '@material-ui/icons/';
 
 const StatusTransaction = (props) => {
 
+    const { status } = props;
+
+    const STATUS_VIEW = {
+        '0': {
+            icon: <Cancel className="icon canceled"/>,
+            text: 'Cancelada' 
+        },
+        '1': {
+            icon: <CheckCircle className="icon accepted"/>,
+            text: 'Aprovada' 
+        } 
+    }
+
     return (
         <div className="status-transfer">
-            <CheckCircle className="icon accepted"/> 
-            <span className="status">Aprovada</span>
+            {STATUS_VIEW[status].icon}
+            <span className="status">{STATUS_VIEW[status].text}</span>
         </div>
     )
 

@@ -1,10 +1,7 @@
 import React, { useEffect } from 'react';
 
 import Header from '../../components/Header';
-import UserInfo from '../../components/Home/UserInfo';
-import NavOperations from '../../components/Home/NavOperations';
-import UserTransactions from '../../components/UserTransactions';
-
+import PanelTransaction from '../../components/PanelTransaction';
 
 import { getUser, getAccount, getTransactions, getContacts } from '../../service';
 
@@ -15,15 +12,16 @@ import { setContacts } from '../../store/actions/contacts';
 
 import { connect } from 'react-redux';
 
-const Home = (props) => {
+const Transaction = (props) => {
 
-    const { storeUser, setUser, storeAccount, setAccount, storeTransactions, setTransactions, sotreContacts, setContacts } = props;
+    const { storeUser, setUser, storeAccount, setAccount, storeTransactions, setTransactions, storeContacts, setContacts } = props;
 
     const idUser = 1;
 
     useEffect(() => {
 
         const fetchData = async () => {
+
             const user = await getUser(idUser).then(user => user);
             const account = await getAccount(user.id).then(account => account);
             const transactions = await getTransactions(user.id).then(transactions => transactions);
@@ -41,13 +39,14 @@ const Home = (props) => {
         
     }, []);
 
+
     return (
         <>
             <Header/>
             <main className="main-wrapper">
-                <UserInfo user={storeUser} account={storeAccount}/>
-                <NavOperations />
-                <UserTransactions transactions={storeTransactions}/>
+                {storeUser.id && storeAccount.id && storeContacts.length ? 
+                    <PanelTransaction user={storeUser} account={storeAccount} contacts={storeContacts} />
+                : null}
             </main>
         </>
     )
@@ -71,4 +70,4 @@ const mapDispatchToProps = (dispatch) => {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Home);
+export default connect(mapStateToProps, mapDispatchToProps)(Transaction);

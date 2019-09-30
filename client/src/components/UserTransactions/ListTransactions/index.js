@@ -7,16 +7,14 @@ const ListTransactions = (props) => {
 
     const { transactions } = props;
 
-    useEffect(() => {
-
-        console.log(transactions)
-    
-    }, [transactions.length]);
-
     return (
         <div className="list-wrapper">
-
-            <GroupDate/>
+            
+            {
+                Object.keys(transactions).map((item, index) => (
+                    <GroupDate key={index} date={transactions[item].date} registers={transactions[item].registers} />
+                ))
+            }
             
         </div>
     )

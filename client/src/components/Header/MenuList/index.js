@@ -1,6 +1,7 @@
 import React from 'react';
 import SwipeableDrawer from '@material-ui/core/SwipeableDrawer';
 
+import Home from '@material-ui/icons/Home';
 import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
 import GroupIcon from '@material-ui/icons/Group';
 import ListIcon from '@material-ui/icons/List';
@@ -12,10 +13,17 @@ const MenuList = (props) => {
   const { clickListener, open } = props;
 
   const listItems = [
+
+    {
+      label: "Home",
+      icon: <Home/>,
+      href: "/"
+    },
+
     {
       label: "Transferência",
       icon: <SwapHorizIcon/>,
-      href: "/transfer"
+      href: "/transaction"
     },
 
     {
