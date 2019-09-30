@@ -7,7 +7,6 @@ import Input from '4all-ui/components/Input';
 import Alert from '4all-ui/components/Alert';
 import InputCurrency from '4all-ui/components/InputCurrency';
 
-import AlertLimit from './AlertLimit';
 import AlertDialog from '../../AlertDialog';
 
 import { setTransaction } from '../../../service';
