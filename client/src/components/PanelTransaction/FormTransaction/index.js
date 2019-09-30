@@ -4,7 +4,11 @@ import { Link } from 'react-router-dom'
 import Button from '4all-ui/components/Button';
 import Select from '4all-ui/components/Select';
 import Input from '4all-ui/components/Input';
+import Alert from '4all-ui/components/Alert';
 import InputCurrency from '4all-ui/components/InputCurrency';
+
+import AlertLimit from './AlertLimit';
+import AlertDialog from '../../AlertDialog';
 
 import { setTransaction } from '../../../service';
 
@@ -22,10 +26,19 @@ const FormTransaction = (props) => {
         value: '',
         error: false
     });
-
     const [ amountToSend, setAmountToSend ] = useState({
         value: '0,00',
         error: false
+    });
+    const [ transactionStatusError, setTransactionStatusError ] = useState({
+        message: '',
+        show: false
+    });
+
+    const [ transactionNeedLimit, setTransactionNeedLimit ] = useState({
+        dialog: null,
+        transaction: null,
+        show: false,
     });
 
     const onChangeSelectContacts = (e) => {
@@ -39,6 +52,30 @@ const FormTransaction = (props) => {
         setAmountToSend({...amountToSend, value: value})
     }
 
+    const releaseListener = async (isReleased, key) => {
+
+        console.log(isReleased, key)
+
+        setTransactionNeedLimit({
+            ...transactionNeedLimit,
+            show: false
+        })
+        
+        if(isReleased){
+            const data = {...transactionNeedLimit.transaction, [key]: isReleased}
+            const transaction = await setTransaction(data);
+            window.location = '/';
+        }
+        
+        else {
+            setTransactionStatusError({
+                message: "Transferência cancelada.",
+                show: true
+            })
+        }
+
+    }
+
     const prepareDateToSend = async (amount, toUser, isContact) =>
     {
 
@@ -48,17 +85,41 @@ const FormTransaction = (props) => {
             data.fom_user = user.id;
             data.to_user = toUser;
             data.amount = amount;
+            data.is_contact = isContact
         } else {
             data.fom_user = user.id;
             data.to_user = CPFLib.unMask(toUser);
             data.amount = amount;
+            data.is_contact = isContact
         }
 
-        console.log(data)
+        const transaction = await setTransaction(data);
 
-        //const transaction = await setTransaction(data);
+        if(transaction.status == 400){
 
-       // console.log(transaction)
+            if(transaction.data.type == "dialog"){
+
+                setTransactionNeedLimit({
+                    dialog: transaction.data,
+                    transaction: data,
+                    show: true
+                })
+
+                
+            } else {
+
+                setTransactionStatusError({
+                    message: transaction.data.message,
+                    show: true
+                })
+
+            }
+            
+        }
+
+        if(transaction.status == 200){
+            window.location = '/';
+        }
     }
 
 
@@ -111,75 +172,109 @@ const FormTransaction = (props) => {
         return optionsContacts
     }
 
+    useEffect(() => {
+
+        if(transactionStatusError.show){
+            setTimeout(function(){
+                setTransactionStatusError({show: false})
+            }, 3000)
+        }
+
+
+    }, [transactionStatusError.show]);
+
     return (
         
-        <form id="form-transaction" >
+        <>
+            <form id="form-transaction" >
 
-            <div className="container">
-                
-                <h4 className="title-description">Você pode transferir ...</h4>
-                
-                <div className="form-group">
-                    <label htmlFor="select-contact" className="label">... selecionando um contato</label>
-                    <Select
-                        name="select-contact"
-                        value={contactToSend.value}
-                        onChange={onChangeSelectContacts}
-                        options={getContactsOptions()}
-                        optionsListHeight="200px"
-                        placeholder="Selecione um contato"
-                        closeMenuOnSelect={true}
-                        isSearchable={true}
-                        error={contactToSend.error}
-                    />
+                <div className="container">
+                    
+                    <h4 className="title-description">Você pode transferir ...</h4>
+                    
+                    <div className="form-group">
+                        <label htmlFor="select-contact" className="label">... selecionando um contato</label>
+                        <Select
+                            name="select-contact"
+                            value={contactToSend.value}
+                            onChange={onChangeSelectContacts}
+                            options={getContactsOptions()}
+                            optionsListHeight="200px"
+                            placeholder="Selecione um contato"
+                            closeMenuOnSelect={true}
+                            isSearchable={true}
+                            error={contactToSend.error}
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="cpf" className="label">Ou digitando o CPF de um usuario</label>
+                        <Input
+                            maxlength="11"
+                            name="cpf"
+                            onChange={handleChangeCPF}
+                            placeholder="Digite o CPF do favorecido"
+                            width="100%"
+                            value={CPFToSend.value}
+                            id="cpf"
+                            error={CPFToSend.error}
+                        />
+                    </div>
                 </div>
 
-                <div className="form-group">
-                    <label htmlFor="cpf" className="label">Ou digitando o CPF de um usuario</label>
-                    <Input
-                        maxlength="11"
-                        name="cpf"
-                        onChange={handleChangeCPF}
-                        placeholder="Digite o CPF do favorecido"
-                        width="100%"
-                        value={CPFToSend.value}
-                        id="cpf"
-                        error={CPFToSend.error}
-                    />
+                <div className="container">
+                    <h4 className="title-description">E o valor?</h4>
+                    <div className="form-group">
+                        <label htmlFor="ammout" className="label">Digite um valor</label>
+                        <InputCurrency
+                            name="ammout"
+                            onChange={handleChangeAmonut}
+                            value={amountToSend.value}
+                            placeholder="Digite um valor"
+                            width="250px"
+                            error={amountToSend.error}
+                        />
+                    </div>
                 </div>
-            </div>
 
-            <div className="container">
-                <h4 className="title-description">E o valor?</h4>
-                <div className="form-group">
-                    <label htmlFor="ammout" className="label">Digite um valor</label>
-                    <InputCurrency
-                        name="ammout"
-                        onChange={handleChangeAmonut}
-                        value={amountToSend.value}
-                        placeholder="Digite um valor"
-                        width="250px"
-                        error={amountToSend.error}
-                    />
-                </div>
-            </div>
+                <div className="container wrappar-btns">
 
-            <div className="container wrappar-btns">
-
-                <Link to="/">
-                    <Button onClick={() => {}} secondary>
-                        Cancelar
+                    <Link to="/">
+                        <Button onClick={() => {}} secondary>
+                            Cancelar
+                        </Button>
+                    </Link>
+                    
+                    <Button onClick={handleSubmit}>
+                        Confirmar
                     </Button>
-                </Link>
-                
-                <Button onClick={handleSubmit}>
-                    Confirmar
-                </Button>
 
-            </div>
+                </div>
+                
+
+            </form>
+
+            { transactionStatusError.show ?
+
+                <Alert>
+                    {transactionStatusError.message}
+                </Alert>
+
+                : null
+
+            }
+
+            { transactionNeedLimit.show ?
+
+                <AlertDialog dialog={transactionNeedLimit.dialog} show={transactionNeedLimit.show} releaseListener={releaseListener}/>
+
+            : null
+
+            }
             
 
-        </form>
+        </>
+
     )
 
 } 

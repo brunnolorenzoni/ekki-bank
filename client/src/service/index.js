@@ -30,7 +30,7 @@ export const getContacts = async (idUser) => {
 
 export const setTransaction = async (data) => {
 
-    return await axios.post('http://localhost:3001/transaction/', data)
+    return await axios.post('http://localhost:3001/api/transaction/', data)
     .then(response => response.data)
     .catch(error => error.response)
 }
