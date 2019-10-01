@@ -23,8 +23,6 @@ Full Stack exercice
 Em client/src/pages:
 - existe uma variavel em cada page indicando o id do usuario
 
-###### Para escolher um usuario no client que está cadastrado:
-
 
 #### API
 
