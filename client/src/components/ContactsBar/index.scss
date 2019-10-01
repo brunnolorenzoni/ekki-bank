@@ -1,0 +1,72 @@
+.contacts-bar{
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    background: white;
+    overflow: hidden;
+
+    .header-warapper{
+
+        width: 250px;
+        border-radius: 3px 3px 0px 0px;
+        overflow: hidden;
+
+        .button-open-contacts{
+            width: 100%;
+            background: #3f51b5;
+            border: 0;
+            border-radius: 3px 3px 0px 0px;
+            padding: 8px;
+            cursor: pointer;
+            .text{
+                text-align: center;
+                font-weight: 700;
+                color: #fff;
+                font-size: 16px;    
+            }
+
+            .icon-contacts{
+                font-size: 14px;    
+            }
+
+        }
+    }
+
+    .bar-content{
+        padding: 8px;
+        .contacts-list{
+            margin-top: 20px;
+            list-style-type: none;
+            max-height: 30vh;
+            overflow: auto;
+
+            .list-title{
+                margin-bottom: 10px;
+                font-weight: 700; 
+            }
+
+            li{
+                display: block;
+                width: 100%;
+                margin: 5px auto;
+
+                float: left;
+
+                .button-delete{
+                    float: right;
+                    background: transparent;
+                    border: none;
+                    color: red;
+                    font-size: 14px;
+                    cursor: pointer;
+                }
+            }
+        }
+
+        .no-contacts{
+            color: #ababab;
+            text-align: center;
+            margin: 20px auto;
+        }
+    }
+}
