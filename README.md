@@ -56,5 +56,5 @@ api/user/:idUser/transaction/:idTransaction | GET | :idUser = id do usuario; :id
 
 
 
-####### O que falta:
--Refatorar
+###### O que falta:
+  - Refatorar
