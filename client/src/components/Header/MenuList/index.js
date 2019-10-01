@@ -3,7 +3,6 @@ import SwipeableDrawer from '@material-ui/core/SwipeableDrawer';
 
 import Home from '@material-ui/icons/Home';
 import SwapHorizIcon from '@material-ui/icons/SwapHoriz';
-import GroupIcon from '@material-ui/icons/Group';
 import ListIcon from '@material-ui/icons/List';
 
 import SideList from './SideList'
@@ -25,13 +24,7 @@ const MenuList = (props) => {
       icon: <SwapHorizIcon/>,
       href: "/transaction"
     },
-
-    {
-      label: "Contatos",
-      icon: <GroupIcon/>,
-      href: "/contacts"
-    },
-
+    
     {
       label: "Extrato",
       icon: <ListIcon/>,

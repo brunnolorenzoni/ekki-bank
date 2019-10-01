@@ -16,7 +16,7 @@ const UserTransactions = (props) => {
                 { 
                     Object.keys(transactions).length ? 
                     
-                    <ListTransactions transactions={transactions} /> : <Loader color="#3f51b5" />
+                    <ListTransactions transactions={transactions} /> : <h4>Sem transferências</h4>
                 }
 
             </section>
