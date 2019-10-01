@@ -35,4 +35,18 @@ export const setTransaction = async (data) => {
     .catch(error => error.response)
 }
 
+export const addContact = async (idUser, data) => {
+
+    return await axios.post('http://localhost:3001/api/user/' + idUser + '/contact/add', data)
+    .then(response => response.data)
+    .catch(error => error.response)
+}
+
+export const deleteContact = async (idUser, idContact) => {
+
+    return await axios.delete('http://localhost:3001/api/user/' + idUser + '/contact/' + idContact + '/delete')
+    .then(response => response.data)
+    .catch(error => error.response)
+}
+
 
