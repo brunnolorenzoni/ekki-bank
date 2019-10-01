@@ -54,3 +54,7 @@ api/transaction/ | POST | Enviar um objeto contendo as informações de valor, d
 api/user/:idUser/transactions/ | GET | :idUser = id do usuario | JSON: retorna todas as transferencias daquele usuario
 api/user/:idUser/transaction/:idTransaction | GET | :idUser = id do usuario; :idTransaction = id da transaction | JSON: retorna uma transferencia
 
+
+
+-- O que falta:
+-Refatorar
