@@ -19,11 +19,11 @@ Full Stack exercice
 1. npm install
 2. npm start
 
-######Para escolher um usuario no client que está cadastrado?
+###### Para escolher um usuario no client que está cadastrado?
 Em client/src/pages:
 - existe uma variavel em cada page indicando o id do usuario
 
-######Para escolher um usuario no client que está cadastrado:
+###### Para escolher um usuario no client que está cadastrado:
 
 
 #### API
